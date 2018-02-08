@@ -26,25 +26,28 @@ public class KafkaStormKafkaTopology {
 
         // Properties
         Properties props = new Properties();
-        props.put("bootstrap.servers", "kafka-1.example.com:6667,kafka-2.example.com:6667,kafka-3.example.com:6667");
+        props.put("bootstrap.servers", "host-10-1-236-128:6667,host-10-1-236-129:6667,host-10-1-236-130:6667");
         props.put("acks", "1");
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("security.protocol", "SASL_PLAINTEXT");
+
+        /* do not need config jaas here in HDP 2.6.0.3 with STORM 1.1.0
         props.put("sasl.jaas.config", "com.sun.security.auth.module.Krb5LoginModule required "
                     + "useTicketCache=false "
                     + "renewTicket=true "
-                    + "serviceName=\"kafka\" "
+                    + "serviceName=\"ocdp\" "
                     + "useKeyTab=true "
-                    + "keyTab=\"/home/pvillard/pvillard.keytab\" "
-                    + "principal=\"pvillard@EXAMPLE.COM\";");
+                    + "keyTab=\"/root/rainday/storm/kafka.keytab\" "
+                    + "principal=\"ocdp/host-10-1-236-128@ASIAINFO.COM\";");
+                    */
 
-        // Kafka spout getting data from "inputTopicStorm"
+        // Kafka spout getting data from "foo"
         KafkaSpoutConfig<String, String> kafkaSpoutConfig = KafkaSpoutConfig
-                .builder(props.getProperty("bootstrap.servers"), "inputTopicStorm")
-                .setGroupId("storm")
+                .builder(props.getProperty("bootstrap.servers"), "foo")
+                .setGroupId("KafkaStormGroupID")
                 .setProp(props)
                 .setRecordTranslator((r) -> new Values(r.topic(), r.key(), r.value()), new Fields("topic", "key", "message"))
                 .build();
@@ -69,6 +72,5 @@ public class KafkaStormKafkaTopology {
         // Submit the topology
         Config conf = new Config();
         StormSubmitter.submitTopology("Kafka-Storm-Kafka", conf, builder.createTopology());
-
     }
 }
